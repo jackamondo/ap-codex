@@ -37,6 +37,8 @@ In Railway → your service → **Variables**:
 
 This URL is baked into the static build (it's `import.meta.env.PUBLIC_*`), so changing it triggers a fresh deploy. It's used by the "View on GitHub" link in the meta strip and by the commit-sha links in the history block.
 
+> **Build-time env vars need an `ARG` declaration in the Dockerfile** to flow through. The current `Dockerfile` already declares `ARG PUBLIC_REPO_URL` so Railway's auto-injection reaches `npm run build`. If you add another `PUBLIC_*` env var later (say `PUBLIC_ANALYTICS_ID`), you must declare it in the Dockerfile the same way — otherwise Astro will compile in the fallback. Runtime-only vars (read by the running container, not by the build) don't need this.
+
 ### 3 — Cloudflare Access
 
 You need the domain you're putting this on (e.g. `codex.appamondo.com`) to be on Cloudflare Zero Trust. If the domain isn't on Cloudflare yet, [add it as a site](https://dash.cloudflare.com) first — that's a separate one-time step that requires nameserver changes.

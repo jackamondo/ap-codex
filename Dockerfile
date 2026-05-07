@@ -24,6 +24,19 @@ RUN npm ci
 
 # Copy the rest, including .git (kept by .dockerignore so git log works).
 COPY . .
+
+# Build-time env vars. Astro reads `import.meta.env.PUBLIC_*` at *build* time
+# and bakes the values into the static HTML/JS — they're not read at runtime.
+# Railway auto-injects service env vars as `--build-arg` flags whenever a
+# matching `ARG` is declared in the Dockerfile, so the chain is:
+#   Railway Variables → docker build --build-arg PUBLIC_REPO_URL=…
+#   → ARG PUBLIC_REPO_URL → ENV PUBLIC_REPO_URL=…
+#   → process.env.PUBLIC_REPO_URL → import.meta.env.PUBLIC_REPO_URL
+#   → baked into dist/
+# Without the ARG declaration here, the variable never reaches the build.
+ARG PUBLIC_REPO_URL
+ENV PUBLIC_REPO_URL=$PUBLIC_REPO_URL
+
 RUN npm run build
 
 
