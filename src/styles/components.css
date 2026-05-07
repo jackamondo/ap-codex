@@ -1,0 +1,787 @@
+/* =============================================================================
+   components.css — reusable UI atoms + page-level component styles.
+
+   Contents (in roughly the order you'll meet them on a snippet page):
+   - Buttons (.btn*) and keyboard hint pills (.kbd)
+   - Crumbs, page H1, lede
+   - Snippet meta strip + tag chips
+   - Markdown body (.md *)
+   - Code blocks (.code-block, .code-head, .code-body, syntax tokens)
+   - Section blocks (Related, Commit history)
+   - Library page: .lib hero, filter bars, snippet grid + cards
+   - ⌘K command palette
+   - TOC list (right column heading list)
+   - Empty state + animations
+   ============================================================================= */
+
+/* ------- Buttons + kbd ------- */
+.btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .12s ease, border-color .12s ease, transform .04s ease;
+}
+.btn:hover { background: var(--bg-sunk); border-color: var(--line-2); }
+.btn:active { transform: translateY(0.5px); }
+.btn-primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn-primary:hover { background: var(--fg-2); border-color: var(--fg-2); }
+.btn-icon {
+  width: 30px;
+  padding: 0;
+  justify-content: center;
+  color: var(--fg-2);
+}
+.btn-ghost { background: transparent; border-color: transparent; color: var(--fg-2); }
+.btn-ghost:hover { background: var(--bg-sunk); color: var(--fg); }
+.btn-sm { height: 26px; font-size: 12px; padding: 0 8px; border-radius: 6px; }
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--kbd-bg);
+  color: var(--kbd-fg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0;
+}
+
+/* ------- Crumbs / H1 / lede ------- */
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-4);
+  margin-bottom: 20px;
+  letter-spacing: 0.01em;
+}
+.crumbs a { color: var(--fg-3); text-decoration: none; }
+.crumbs a:hover { color: var(--fg); }
+.crumbs span.sep { color: var(--fg-4); }
+
+.h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin: 0 0 14px;
+  color: var(--fg);
+}
+.lede {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--fg-2);
+  margin: 0 0 32px;
+  letter-spacing: -0.008em;
+}
+
+/* ------- Meta strip + tags -------
+   Two rows separated by a thin divider line:
+     1) Updated / Source — key/value cells, stacked label-on-top
+     2) Tag chips
+   The padding-box / border-box trick gives the strip a transparent border
+   that the accent gradient bleeds through — a soft sheen, not a hard line. */
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background:
+    linear-gradient(var(--bg-sunk), var(--bg-sunk)) padding-box,
+    var(--accent-grad-soft) border-box;
+  margin-bottom: 36px;
+}
+.meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.meta-row-tags {
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+}
+.meta-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+/* The uppercase mono label — same treatment as section headers so the
+   metadata reads as deliberately structured rather than ad-hoc. */
+.meta-key {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-4);
+  line-height: 1;
+}
+.meta-key-inline {
+  align-self: center;
+  margin-right: 2px;
+}
+.meta-val {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  color: var(--fg);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+.meta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+}
+.meta-link code {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg);
+}
+.meta-link:hover code { text-decoration: underline; text-underline-offset: 3px; }
+.meta-link svg { color: var(--fg-3); }
+.meta-link:hover svg { color: var(--fg); }
+.meta-divider { width: 1px; align-self: stretch; background: var(--line-2); }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  background: var(--tag-bg);
+  color: var(--fg);
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.tag-clickable {
+  cursor: pointer;
+  appearance: none;
+  font-family: var(--mono);
+  transition: background .12s ease, color .12s ease, border-color .12s ease;
+}
+.tag-clickable:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.tag.is-active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+/* ------- Markdown body -------
+   Astro-rendered markdown nests inside `.md` so we can scope these without
+   leaking serif type into UI chrome. */
+.md h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.014em;
+  margin: 40px 0 12px;
+  color: var(--fg);
+  scroll-margin-top: 90px;
+}
+.md h3 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.35;
+  margin: 28px 0 8px;
+  color: var(--fg);
+  scroll-margin-top: 90px;
+}
+.md p { margin: 0 0 14px; color: var(--fg-2); font-size: 15px; line-height: 1.7; }
+.md p:last-child { margin-bottom: 0; }
+.md ul, .md ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+  color: var(--fg-2);
+  font-size: 15px;
+  line-height: 1.75;
+}
+.md li { margin-bottom: 4px; }
+.md strong { color: var(--fg); font-weight: 600; }
+.md em { font-style: italic; }
+.md a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 3px;
+}
+.md a:hover { text-decoration-color: var(--fg); }
+.md code:not(pre code) {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  padding: 1px 5px;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--fg);
+}
+
+/* ------- Code blocks -------
+   Hierarchy:
+     <figure class="code-block">              ← gradient border + bg
+       <div class="code-head">…</div>         ← path | lang | copy
+       <pre class="astro-code code-body">…    ← Shiki's output, .code-body adds our type
+     </figure>
+   The Shiki transformer in src/lib/code-block-transformer.ts builds this
+   structure. It strips Shiki's inline background so the figure's bg wins.
+
+   Border uses the gradient trick, but a stronger top stop so the block has
+   a faint highlight at the top edge. */
+.code-block {
+  margin: 18px 0 22px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background:
+    linear-gradient(var(--bg-code), var(--bg-code)) padding-box,
+    linear-gradient(180deg,
+      color-mix(in oklch, var(--grad-1) 30%, var(--line)),
+      var(--line)) border-box;
+  overflow: hidden;
+}
+
+/* Shiki dual-theme: it renders both light + dark colors as CSS variables
+   per token. The `<pre>` inherits the light theme's `color` by default;
+   when our `[data-theme="dark"]` is set on <html>, we swap to `--shiki-dark`.
+   `!important` is required to beat Shiki's inline `style="color:…"`.
+
+   We target `.code-body` (added by our transformer) rather than Shiki's own
+   `.astro-code` class — Astro doesn't always add it in dual-theme mode, and
+   `.code-body` is the contract under our control. */
+.code-block .code-body {
+  background: transparent !important;
+}
+[data-theme="dark"] .code-block .code-body,
+[data-theme="dark"] .code-block .code-body span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+.code-head {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 6px 0 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-sunk);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-3);
+  gap: 10px;
+}
+.code-head-path {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.code-head-lang {
+  text-transform: lowercase;
+  color: var(--fg-4);
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 10.5px;
+  background: var(--bg-elev);
+}
+.copy-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fg-3);
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 11px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.copy-btn:hover { background: var(--bg-elev); border-color: var(--line); color: var(--fg); }
+.copy-btn.is-copied { color: var(--fg); }
+
+.code-body {
+  margin: 0;
+  padding: 16px 18px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--fg);
+  overflow-x: auto;
+  white-space: pre;
+  tab-size: 2;
+}
+.code-body code { font-family: inherit; }
+
+/* Syntax highlighting tokens — kept as classes so any highlighter (Shiki,
+   Prism, our own) can target them. Light theme defaults; dark overrides below. */
+.tok-kw   { color: #af00db; }
+.tok-str  { color: #0a8754; }
+.tok-cmt  { color: #6c757d; font-style: italic; }
+.tok-num  { color: #b45309; }
+.tok-tag  { color: #d92626; }
+.tok-attr { color: #b45309; }
+.tok-fn   { color: #1d4ed8; }
+.tok-prop { color: #b45309; }
+.tok-sel  { color: #d92626; }
+.tok-val  { color: #0a8754; }
+.tok-hbs  { color: #7c3aed; }
+.tok-punc { color: var(--fg-3); }
+
+[data-theme="dark"] .tok-kw   { color: #c586c0; }
+[data-theme="dark"] .tok-str  { color: #6dd58c; }
+[data-theme="dark"] .tok-cmt  { color: #8b8b8b; }
+[data-theme="dark"] .tok-num  { color: #f0b76b; }
+[data-theme="dark"] .tok-tag  { color: #ff7b72; }
+[data-theme="dark"] .tok-attr { color: #f0b76b; }
+[data-theme="dark"] .tok-fn   { color: #79b8ff; }
+[data-theme="dark"] .tok-prop { color: #f0b76b; }
+[data-theme="dark"] .tok-sel  { color: #ff7b72; }
+[data-theme="dark"] .tok-val  { color: #6dd58c; }
+[data-theme="dark"] .tok-hbs  { color: #c586c0; }
+
+/* ------- Section blocks (Related / Commit history) ------- */
+.section-block { margin-top: 56px; }
+.section-block-h {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-4);
+  margin: 0 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-block-h .pill {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--fg-3);
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.related-card {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bg-elev);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color .12s ease, transform .12s ease, box-shadow .12s ease;
+  position: relative;
+}
+.related-card:hover {
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background:
+    linear-gradient(var(--bg-elev), var(--bg-elev)) padding-box,
+    var(--accent-grad-soft) border-box;
+}
+.related-card-title {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--fg);
+  margin: 0 0 4px;
+  letter-spacing: -0.005em;
+}
+.related-card-meta {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--fg-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ------- Commit list ------- */
+.commits { list-style: none; margin: 0; padding: 0; }
+.commit {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.commit:last-child { border-bottom: 0; }
+.commit-sha {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg);
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+  padding: 2px 7px;
+  border-radius: 4px;
+  width: fit-content;
+}
+.commit-message { color: var(--fg-2); font-size: 13.5px; }
+/* Conventional-commit prefix gets a colored pill so feat/fix/docs/a11y read at a glance. */
+.commit-message-prefix {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-4);
+  margin-right: 6px;
+  text-transform: lowercase;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.commit-message-prefix.feat { color: oklch(0.55 0.13 150); }
+.commit-message-prefix.fix  { color: oklch(0.6 0.15 25); }
+.commit-message-prefix.docs { color: oklch(0.55 0.13 250); }
+.commit-message-prefix.a11y { color: oklch(0.55 0.13 320); }
+[data-theme="dark"] .commit-message-prefix.feat { color: oklch(0.75 0.18 150); }
+[data-theme="dark"] .commit-message-prefix.fix  { color: oklch(0.75 0.18 25); }
+[data-theme="dark"] .commit-message-prefix.docs { color: oklch(0.75 0.16 250); }
+[data-theme="dark"] .commit-message-prefix.a11y { color: oklch(0.75 0.16 320); }
+
+.commit-date { font-family: var(--mono); font-size: 11px; color: var(--fg-4); white-space: nowrap; }
+
+.commit-source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-3);
+}
+.commit-source-link {
+  color: var(--fg);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.commit-source-link:hover { text-decoration: underline; }
+
+/* ------- Library page (hero, filters, snippet grid) ------- */
+.lib { padding: 56px 56px 120px 56px; max-width: 1100px; }
+.lib-hero { margin-bottom: 36px; }
+.lib-h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin: 0 0 12px;
+}
+.lib-lede {
+  font-family: var(--serif);
+  font-size: 19px;
+  color: var(--fg-2);
+  margin: 0;
+  max-width: 620px;
+  line-height: 1.5;
+  letter-spacing: -0.008em;
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.filter-bar:first-of-type { border-top: 1px solid var(--line); }
+.filter-bar-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-4);
+  margin-right: 6px;
+  min-width: 64px;
+}
+
+.snippet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+.snippet-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-elev);
+  cursor: pointer;
+  transition: border-color .12s ease, transform .12s ease, box-shadow .12s ease;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  position: relative;
+  text-decoration: none;
+}
+.snippet-card:hover {
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background:
+    linear-gradient(var(--bg-elev), var(--bg-elev)) padding-box,
+    var(--accent-grad-soft) border-box;
+}
+.snippet-card.is-hidden { display: none; }
+.snippet-card-cat {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-4);
+  margin-bottom: 8px;
+}
+.snippet-card-title {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--fg);
+  letter-spacing: -0.012em;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+.snippet-card-summary {
+  font-size: 13px;
+  color: var(--fg-3);
+  line-height: 1.5;
+  margin: 0 0 14px;
+  flex: 1;
+}
+.snippet-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--fg-4);
+}
+/* Tags grow to fill space and truncate if there's overflow; the date sits
+   on the right and never wraps. min-width:0 lets the flex item actually
+   shrink small enough for `text-overflow: ellipsis` to kick in. */
+.snippet-card-foot-tags {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.snippet-card-foot-date {
+  flex-shrink: 0;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ------- ⌘K command palette (modal) ------- */
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  animation: fadeIn .12s ease;
+}
+[data-theme="dark"] .palette-overlay { background: rgba(0, 0, 0, 0.6); }
+.palette {
+  width: 92%;
+  max-width: 580px;
+  background: var(--bg-elev);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 60vh;
+  background:
+    linear-gradient(var(--bg-elev), var(--bg-elev)) padding-box,
+    var(--accent-grad-soft) border-box;
+}
+.palette-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.palette-input {
+  flex: 1;
+  appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 15px;
+}
+.palette-input::placeholder { color: var(--fg-4); }
+.palette-results {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+.palette-result {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.palette-result:hover, .palette-result.is-active { background: var(--bg-sunk); }
+.palette-result-title {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--fg);
+  letter-spacing: -0.005em;
+}
+.palette-result-cat {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--fg-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.palette-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--fg-4);
+  font-size: 13px;
+}
+.palette-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-sunk);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--fg-4);
+}
+.palette-foot-item { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ------- TOC list (right column) ------- */
+.toc-h {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-4);
+  margin: 0 0 12px;
+  font-weight: 500;
+}
+/* TOC list — smooth color/bg transitions on hover and active so the
+   right rail feels like a real navigation surface, not just static text.
+   The 1px left rail acts as a guide; active items punch through with
+   their own 2px accent-colored border. */
+.toc-list { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+.toc-list li { margin: 0; }
+.toc-list a {
+  display: block;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  color: var(--fg-3);
+  text-decoration: none;
+  margin-left: -2px;
+  border-left: 2px solid transparent;
+  border-radius: 0 5px 5px 0;
+  line-height: 1.4;
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+}
+.toc-list a:hover {
+  color: var(--fg);
+  background: color-mix(in oklch, var(--bg-sunk) 60%, transparent);
+}
+.toc-list a.is-active {
+  color: var(--fg);
+  border-left-color: var(--fg);
+  font-weight: 500;
+  background: var(--bg-sunk);
+}
+/* h3s read as nested under their h2: indented + dimmer until hovered/active. */
+.toc-list .toc-h3 a {
+  padding-left: 22px;
+  font-size: 12px;
+  color: var(--fg-4);
+}
+.toc-list .toc-h3 a:hover,
+.toc-list .toc-h3 a.is-active {
+  color: var(--fg);
+}
+
+/* ------- Empty state + animations ------- */
+.empty-state {
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--fg-3);
+}
+.empty-state h2 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0 0 6px;
+  color: var(--fg);
+  letter-spacing: -0.012em;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

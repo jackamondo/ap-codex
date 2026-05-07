@@ -1,0 +1,203 @@
+---
+// Snippet detail page (`/<id>`) — one snippet, full content.
+//
+// Page assembly:
+//   1. Crumbs + H1 + lede
+//   2. Meta strip (author, updated, source path link, tag chips)
+//   3. Use case + the rendered markdown body
+//   4. Related snippets grid (if any)
+//
+// Commit history (Phase 2) and the TOC scroll-spy (Phase 4) come later.
+// For now the TOC pane shows static + markdown-derived links without the
+// "active heading" highlight.
+
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import { getSnippet } from '../lib/snippets';
+import { findCategoryForSnippet, type Category } from '../lib/categories';
+
+import Codex from '../layouts/Codex.astro';
+import Crumbs from '../components/Crumbs.astro';
+import MetaStrip from '../components/MetaStrip.astro';
+import CommitList from '../components/CommitList.astro';
+import { formatDate } from '../lib/format';
+import { getCommitsForSnippet } from '../lib/commits';
+import { SITE_CONFIG } from '../lib/config';
+
+export const getStaticPaths = (async () => {
+  const all = await getCollection('snippets');
+  return all.map((entry) => ({ params: { id: entry.id } }));
+}) satisfies GetStaticPaths;
+
+const { id } = Astro.params;
+const item = await getSnippet(id!);
+if (!item) return Astro.redirect('/');
+
+const { entry, category } = item;
+const { Content, headings } = await render(entry);
+
+// Source path on GitHub for the meta-strip link.
+// Strip the `content/` prefix (or anything up to and including it) so we
+// get the path relative to the repo's `content/` folder. Handles both
+// absolute paths (`/Users/.../content/foo.md`) and Astro's relative form
+// (`content/foo.md`) by using a non-anchored prefix match.
+const sourcePath = (entry.filePath ?? '').replace(/^.*?content\//, '');
+
+// Resolve related ids into full {entry, category} pairs. Silently skip any
+// that don't resolve so a stale `related:` reference doesn't break the page.
+const allSnippets = await getCollection('snippets');
+type Related = { entry: (typeof allSnippets)[number]; category: Category };
+const related: Related[] = entry.data.related
+  .map((relId) => {
+    const relEntry = allSnippets.find((s) => s.id === relId);
+    const relCat = relEntry ? findCategoryForSnippet(relEntry.id) : null;
+    return relEntry && relCat ? { entry: relEntry, category: relCat } : null;
+  })
+  .filter((r): r is Related => r !== null);
+
+// TOC: fixed page sections + every h2/h3 from the rendered markdown body.
+const bodyHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+const commits = getCommitsForSnippet(entry.id);
+---
+
+<Codex
+  title={`${entry.data.title} — ${SITE_CONFIG.appName}`}
+  page="snippet"
+  activeId={entry.id}
+  showToc
+>
+  <article class="content">
+    <Crumbs category={category} title={entry.data.title} />
+
+    <h1 class="h1">{entry.data.title}</h1>
+    <p class="lede">{entry.data.summary}</p>
+
+    <MetaStrip
+      updated={formatDate(entry.data.updated)}
+      sourcePath={sourcePath}
+      tags={entry.data.tags}
+    />
+
+    <div class="md">
+      <h2 id="use-case">Use case</h2>
+      <p>{entry.data.useCase}</p>
+      <Content />
+    </div>
+
+    {related.length > 0 && (
+      <section class="section-block" id="related-snippets">
+        <h2 class="section-block-h">Related snippets</h2>
+        <div class="related-grid">
+          {related.map((rel) => (
+            <a href={`/${rel.entry.id}`} class="related-card">
+              <div class="related-card-meta">{rel.category.label}</div>
+              <h3 class="related-card-title">{rel.entry.data.title}</h3>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {commits.length > 0 && (
+      <CommitList commits={commits} sourcePath={sourcePath} />
+    )}
+  </article>
+
+  <Fragment slot="toc">
+    <h4 class="toc-h">On this page</h4>
+    <ul class="toc-list">
+      <li><a href="#use-case">Use case</a></li>
+      {bodyHeadings.map((h) => (
+        <li class:list={{ 'toc-h3': h.depth === 3 }}>
+          <a href={`#${h.slug}`}>{h.text}</a>
+        </li>
+      ))}
+      {related.length > 0 && (
+        <li><a href="#related-snippets">Related</a></li>
+      )}
+      {commits.length > 0 && (
+        <li><a href="#commit-history">Commit history</a></li>
+      )}
+    </ul>
+  </Fragment>
+</Codex>
+
+<script>
+  // TOC scroll-spy. As the user scrolls the main column, the TOC link whose
+  // heading is currently in the visible band gets `is-active`.
+  //
+  // The visible band is shaped by `rootMargin: '-80px 0px -65% 0px'` — that
+  // ignores the top 80px (sticky chrome) and the bottom 65%, leaving a
+  // narrow strip near the top of the viewport. At any moment usually one
+  // heading lives in that strip, and that's the one we mark active.
+
+  const main = document.querySelector<HTMLElement>('.main');
+  const headings = main?.querySelectorAll<HTMLElement>(
+    '.content h2[id], .content h3[id]'
+  );
+  const tocAnchors = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>('.toc-list a[href^="#"]').forEach((a) => {
+    const id = a.getAttribute('href')?.slice(1);
+    if (id) tocAnchors.set(id, a);
+  });
+
+  if (main && headings && headings.length > 0 && tocAnchors.size > 0) {
+    const setActive = (id: string | null) => {
+      tocAnchors.forEach((a) => a.classList.remove('is-active'));
+      if (id) tocAnchors.get(id)?.classList.add('is-active');
+    };
+
+    // Default to the first TOC entry until the user scrolls.
+    setActive(headings[0].id);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((entry) => entry.isIntersecting)
+          .forEach((entry) => setActive(entry.target.id));
+      },
+      {
+        root: main,
+        rootMargin: '-80px 0px -65% 0px',
+        threshold: 0,
+      }
+    );
+    headings.forEach((h) => observer.observe(h));
+  }
+</script>
+
+<script>
+  // Code-block copy button. Each .code-block figure has one [data-copy-button]
+  // inside its head; the snippet text is in the sibling <pre><code>.
+  // We swap the label to "Copied" for 1.4s on success.
+
+  const RESET_MS = 1400;
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-button]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const figure = button.closest('.code-block');
+      const code = figure?.querySelector<HTMLElement>('pre code');
+      const text = code?.innerText ?? '';
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        // Clipboard write can fail in non-secure contexts (e.g. http on a LAN);
+        // silently bail rather than showing a misleading "Copied" state.
+        return;
+      }
+
+      const label = button.querySelector<HTMLElement>('[data-copy-label]');
+      const original = label?.textContent ?? 'Copy';
+      if (label) label.textContent = 'Copied';
+      button.classList.add('is-copied');
+
+      window.setTimeout(() => {
+        if (label) label.textContent = original;
+        button.classList.remove('is-copied');
+      }, RESET_MS);
+    });
+  });
+</script>

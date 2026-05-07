@@ -1,0 +1,62 @@
+---
+// Category page (`/category/<id>`) — grid of every snippet in one category.
+//
+// Reuses the Library page layout (.lib container + snippet grid) but skips
+// the filter bars since the page is already filtered by definition. The
+// category breadcrumb on snippet pages links here.
+
+import type { GetStaticPaths } from 'astro';
+import Codex from '../../layouts/Codex.astro';
+import SnippetCard from '../../components/SnippetCard.astro';
+import { loadCategories, type Category } from '../../lib/categories';
+import { getAllSnippets } from '../../lib/snippets';
+import { SITE_CONFIG } from '../../lib/config';
+
+// Only generate pages for categories that actually contain snippets — empty
+// categories don't get a dead URL. They'll come online automatically once
+// the first snippet for that category is added and the build runs again.
+export const getStaticPaths = (async () => {
+  const snippets = await getAllSnippets();
+  const usedCategoryIds = new Set(snippets.map((s) => s.category.id));
+  return loadCategories()
+    .filter((cat) => usedCategoryIds.has(cat.id))
+    .map((cat) => ({
+      params: { id: cat.id },
+      props: { category: cat },
+    }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  category: Category;
+}
+
+const { category } = Astro.props as Props;
+const allSnippets = await getAllSnippets();
+const items = allSnippets.filter((s) => s.category.id === category.id);
+
+const countLabel =
+  items.length === 0
+    ? 'No snippets in this category yet.'
+    : `${items.length} ${items.length === 1 ? 'snippet' : 'snippets'} in ${category.label}.`;
+---
+
+<Codex title={`${category.label} — ${SITE_CONFIG.appName}`} page="category">
+  <div class="lib">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">{SITE_CONFIG.appName}</a>
+      <span class="sep">/</span>
+      <span>{category.label}</span>
+    </nav>
+
+    <header class="lib-hero">
+      <h1 class="lib-h1">{category.label}</h1>
+      <p class="lib-lede">{countLabel}</p>
+    </header>
+
+    {items.length > 0 && (
+      <div class="snippet-grid">
+        {items.map((item) => <SnippetCard item={item} />)}
+      </div>
+    )}
+  </div>
+</Codex>

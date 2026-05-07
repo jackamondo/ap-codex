@@ -1,0 +1,21 @@
+---
+// Crumbs — `<AppName> / <Category> / <Title>` breadcrumb strip on snippet pages.
+
+import type { Category } from '../lib/categories';
+import { SITE_CONFIG } from '../lib/config';
+
+interface Props {
+  category: Category;
+  title: string;
+}
+
+const { category, title } = Astro.props;
+---
+
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="/">{SITE_CONFIG.appName}</a>
+  <span class="sep">/</span>
+  <a href={`/category/${category.id}`}>{category.label}</a>
+  <span class="sep">/</span>
+  <span>{title}</span>
+</nav>

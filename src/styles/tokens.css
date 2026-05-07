@@ -1,0 +1,100 @@
+/* =============================================================================
+   tokens.css — design tokens and global resets.
+
+   All visual primitives live here as CSS custom properties so the rest of the
+   stylesheet can stay theme-agnostic. Light/dark are toggled by the
+   `data-theme="dark"` attribute on <html>.
+
+   Contents:
+   - Typography (serif / sans / mono)
+   - Surface + foreground colors (light + dark)
+   - Subtle accent gradient (oklch 3-stop, used for hover/focus borders)
+   - Shadows
+   - Base reset and body defaults
+   ============================================================================= */
+
+:root {
+  /* ------- Typography ------- */
+  --serif: 'IBM Plex Serif', ui-serif, Georgia, serif;
+  --sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ------- Surfaces / foregrounds (light) ------- */
+  --bg: #fcfcfc;
+  --bg-elev: #ffffff;
+  --bg-sunk: #f5f5f4;
+  --bg-code: #fafaf9;
+  --fg: #0a0a0a;
+  --fg-2: #404040;
+  --fg-3: #737373;
+  --fg-4: #a3a3a3;
+  --line: #ececec;
+  --line-2: #e5e5e4;
+  --kbd-bg: #fff;
+  --kbd-fg: #404040;
+  --tag-bg: #f5f5f4;
+  --tag-fg: #404040;
+
+  /* ------- Shadows ------- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .04);
+  --shadow-md: 0 1px 0 rgba(0, 0, 0, .04), 0 8px 24px -12px rgba(0, 0, 0, .08);
+  --shadow-lg: 0 10px 40px -10px rgba(0, 0, 0, .18), 0 2px 8px rgba(0, 0, 0, .06);
+
+  /* ------- Accent gradient -------
+     A 3-stop oklch gradient used on focus/hover borders and the brand mark.
+     Higher chroma (0.15 vs 0.10) for a touch more presence; the "soft"
+     variant mixes each stop with 75% transparent so borders feel like a
+     sheen rather than a stroke. */
+  --grad-1: oklch(0.78 0.15 250);   /* pale blue */
+  --grad-2: oklch(0.78 0.15 320);   /* dusky pink */
+  --grad-3: oklch(0.82 0.15 90);    /* pale gold */
+  --accent-grad: linear-gradient(135deg, var(--grad-1), var(--grad-2) 55%, var(--grad-3));
+  --accent-grad-soft: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--grad-1) 75%, transparent),
+    color-mix(in oklch, var(--grad-2) 75%, transparent) 55%,
+    color-mix(in oklch, var(--grad-3) 75%, transparent)
+  );
+}
+
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-elev: #111111;
+  --bg-sunk: #131313;
+  --bg-code: #0d0d0d;
+  --fg: #fafafa;
+  --fg-2: #d4d4d4;
+  --fg-3: #a3a3a3;
+  --fg-4: #737373;
+  --line: #1f1f1f;
+  --line-2: #262626;
+  --kbd-bg: #1a1a1a;
+  --kbd-fg: #d4d4d4;
+  --tag-bg: #1a1a1a;
+  --tag-fg: #d4d4d4;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-md: 0 1px 0 rgba(255, 255, 255, .04), 0 8px 24px -12px rgba(0, 0, 0, .6);
+  --shadow-lg: 0 10px 40px -10px rgba(0, 0, 0, .6), 0 2px 8px rgba(0, 0, 0, .4);
+
+  /* Slightly more saturated/darker stops so the gradient still reads on dark. */
+  --grad-1: oklch(0.62 0.18 250);
+  --grad-2: oklch(0.62 0.18 320);
+  --grad-3: oklch(0.70 0.18 90);
+}
+
+/* ------- Reset + body defaults ------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: var(--fg); color: var(--bg); }

@@ -1,0 +1,45 @@
+# Sidebar categories for the Codex.
+# - `id` matches the folder name under content/.
+# - `label` is the human-readable name shown in the sidebar.
+# - `items` is the ordered list of snippet ids inside that category.
+#   Adding a snippet means: drop the .md AND add its id here.
+
+- id: getting-started
+  label: Getting started
+  items:
+    - introduction
+    - how-to-use
+
+- id: header
+  label: Header & nav
+  items:
+    - hide-signin-link
+    - sticky-header
+
+- id: requests
+  label: Request form
+  items: []
+
+- id: footer
+  label: Footer
+  items: []
+
+- id: homepage
+  label: Home page
+  items: []
+
+- id: categories
+  label: Categories
+  items: []
+
+- id: sections
+  label: Sections
+  items: []
+
+- id: articles
+  label: Articles
+  items: []
+
+- id: custom
+  label: Custom pages
+  items: []

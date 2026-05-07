@@ -1,0 +1,28 @@
+{
+  "name": "ap-codex",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal Zendesk Guide snippet library — pulls content from the zd-codex repo at build time.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "sync-content": "node scripts/sync-content.mjs",
+    "predev": "npm run sync-content",
+    "prebuild": "npm run sync-content"
+  },
+  "dependencies": {
+    "@astrojs/react": "^5.0.4",
+    "astro": "^6.2.2",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "yaml": "^2.8.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}

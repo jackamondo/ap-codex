@@ -1,0 +1,110 @@
+---
+// Topbar — sticky header strip across the top of the app.
+//
+// Children, left to right:
+//   1. Brand mark + "Codex" wordmark + version pill
+//   2. Nav links — Library (internal) + GitHub (external, opens in new tab)
+//   3. Search button (looks like an input; opens the ⌘K palette in Phase 4)
+//   4. Theme toggle (sun / moon)
+//
+// Light interactivity (theme toggle, kbd-shortcut wiring) is in the inline
+// <script> at the bottom — no React island needed for these.
+
+import { SITE_CONFIG } from '../lib/config';
+
+interface Props {
+  /** Which top-level page is active — controls the "Library" link highlight. */
+  page?: 'library' | 'snippet';
+}
+
+const { page = 'library' } = Astro.props;
+---
+
+<header class="topbar">
+  <a href="/" class="topbar-brand" aria-label={`${SITE_CONFIG.appName} home`}>
+    <span>{SITE_CONFIG.appName}</span>
+  </a>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a
+      href="/"
+      class:list={['topbar-nav-link', { 'is-active': page === 'library' }]}
+    >
+      Library
+    </a>
+    <a
+      href={SITE_CONFIG.repoUrl}
+      target="_blank"
+      rel="noreferrer noopener"
+      class="topbar-nav-link"
+    >
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+        />
+      </svg>
+      GitHub
+    </a>
+  </nav>
+
+  <button type="button" class="topbar-search" data-palette-trigger>
+    <span class="topbar-search-icon" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" />
+      </svg>
+    </span>
+    <span class="topbar-search-text">Search snippets…</span>
+    <span class="kbd">⌘K</span>
+  </button>
+
+  <div class="topbar-actions">
+    <button
+      type="button"
+      class="btn btn-icon btn-ghost"
+      data-theme-toggle
+      aria-label="Toggle color theme"
+    >
+      <!-- Sun icon (visible in dark mode = "switch to light") -->
+      <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </svg>
+      <!-- Moon icon (visible in light mode = "switch to dark") -->
+      <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+      </svg>
+    </button>
+  </div>
+</header>
+
+<style is:global>
+  /* Show only the icon that points at the *next* theme: moon in light, sun in dark.
+     Defined globally so the rule applies wherever the topbar renders. */
+  [data-theme="light"] .theme-icon-sun  { display: none; }
+  [data-theme="dark"]  .theme-icon-moon { display: none; }
+</style>
+
+<script>
+  // Topbar interactivity:
+  //   - Theme toggle (sun/moon) — persisted to localStorage
+  //   - Search button → fires `codex:open-palette` for the CommandPalette island
+  //
+  // ⌘K / Ctrl+K is handled inside the palette itself, so it works from
+  // anywhere on the page (not just when focus is in the topbar).
+
+  const root = document.documentElement;
+  const STORAGE_KEY = 'codex.theme';
+
+  document.querySelector<HTMLButtonElement>('[data-theme-toggle]')?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    localStorage.setItem(STORAGE_KEY, next);
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-palette-trigger]')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('codex:open-palette'));
+  });
+</script>

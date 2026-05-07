@@ -1,0 +1,39 @@
+---
+// SnippetCard — one card on the Library grid.
+//
+// Card content top→bottom: uppercase mono category label, serif title,
+// 13px summary, footer with the first 3 tags joined by ` · ` and the date.
+//
+// The `data-cat` and `data-tags` attributes drive the inline filter script
+// on the Library page — they let us filter without a JS framework.
+
+import type { SnippetWithCategory } from '../lib/snippets';
+import { formatDate } from '../lib/format';
+
+interface Props {
+  item: SnippetWithCategory;
+}
+
+const { item } = Astro.props;
+const { entry, category } = item;
+
+const tagPreview = entry.data.tags.slice(0, 3).join(' · ');
+const updatedLabel = formatDate(entry.data.updated);
+---
+
+<a
+  href={`/${entry.id}`}
+  class="snippet-card"
+  data-cat={category.id}
+  data-tags={entry.data.tags.join(',')}
+>
+  <div class="snippet-card-cat">{category.label}</div>
+  <h3 class="snippet-card-title">{entry.data.title}</h3>
+  <p class="snippet-card-summary">{entry.data.summary}</p>
+  <div class="snippet-card-foot">
+    {tagPreview && (
+      <span class="snippet-card-foot-tags">{tagPreview}</span>
+    )}
+    <span class="snippet-card-foot-date">{updatedLabel}</span>
+  </div>
+</a>

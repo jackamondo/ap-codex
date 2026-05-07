@@ -1,0 +1,101 @@
+---
+// Codex layout — the 3-column app shell wraps every page.
+//
+// Grid:
+//   topbar (full width, sticky)
+//   sidebar | main | toc
+//
+// The Library page passes `page="library"` which collapses the toc column
+// (a CSS rule on `.app[data-page="library"]`). Snippet detail pages keep
+// the toc column and may pass content into the named `toc` slot.
+//
+// `activeId` flows down to the sidebar so the active row gets highlighted.
+
+import '../styles/tokens.css';
+import '../styles/layout.css';
+import '../styles/components.css';
+
+import Topbar from '../components/Topbar.astro';
+import Sidebar from '../components/Sidebar.astro';
+import { CommandPalette } from '../islands/CommandPalette';
+import { getAllSnippets } from '../lib/snippets';
+
+interface Props {
+  title: string;
+  /** Top-level page kind. Drives sidebar active state + grid template. */
+  page?: 'library' | 'snippet' | 'category';
+  activeId?: string | null;
+  /** When true, the snippet detail page renders the right TOC column. */
+  showToc?: boolean;
+}
+
+const { title, page = 'library', activeId = null, showToc = false } = Astro.props;
+
+// Build the palette index once per page render. The palette filters this
+// in-memory list, so we send only the fields it needs (no markdown body).
+const allSnippets = await getAllSnippets();
+const paletteData = allSnippets.map(({ entry, category }) => ({
+  id: entry.id,
+  title: entry.data.title,
+  summary: entry.data.summary,
+  useCase: entry.data.useCase,
+  tags: entry.data.tags,
+  categoryLabel: category.label,
+}));
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+
+    <!--
+      No-flash theme bootstrap: read the persisted theme before first paint
+      so the page never flickers from light → dark on initial load.
+    -->
+    <script is:inline>
+      try {
+        const stored = localStorage.getItem('codex.theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = stored ?? (prefersDark ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+      } catch {
+        /* localStorage may be unavailable in some embedded contexts; default light. */
+      }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap"
+    />
+  </head>
+
+  <body>
+    <div class="app" data-page={page}>
+      <Topbar page={page} />
+      <Sidebar activeId={activeId} page={page} />
+
+      <main class="main">
+        <slot />
+      </main>
+
+      {showToc && (
+        <aside class="toc-pane">
+          <div class="toc-pane-inner">
+            <slot name="toc" />
+          </div>
+        </aside>
+      )}
+    </div>
+
+    <!-- Mounted at body root so the modal layers above the app shell.
+         `client:load` hydrates immediately so ⌘K is always responsive. -->
+    <CommandPalette client:load snippets={paletteData} />
+  </body>
+</html>

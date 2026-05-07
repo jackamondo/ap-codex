@@ -1,0 +1,60 @@
+---
+// MetaStrip — the gradient-bordered summary panel sitting above the snippet body.
+//
+// Two rows: a key/value strip (Updated, Source) and a row of tag chips.
+// Each cell stacks the uppercase mono label on top and the value below —
+// the consistent label treatment makes them read as intentional metadata
+// rather than placeholder text.
+
+import { SITE_CONFIG } from '../lib/config';
+
+interface Props {
+  updated: string;
+  /** Path relative to `content/` in the repo (e.g. `header/hide-signin-link.md`). */
+  sourcePath: string;
+  tags: string[];
+}
+
+const { updated, sourcePath, tags } = Astro.props;
+const sourceUrl = `${SITE_CONFIG.repoUrl}/blob/main/content/${sourcePath}`;
+---
+
+<aside class="meta">
+  <div class="meta-row">
+    <div class="meta-cell">
+      <span class="meta-key">Updated</span>
+      <span class="meta-val">{updated}</span>
+    </div>
+
+    <span class="meta-divider" aria-hidden="true"></span>
+
+    <div class="meta-cell">
+      <span class="meta-key">Source</span>
+      <a
+        class="meta-val meta-link"
+        href={sourceUrl}
+        target="_blank"
+        rel="noreferrer noopener"
+      >
+        <code>content/{sourcePath}</code>
+        <svg
+          width="11" height="11" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M7 17L17 7M9 7h8v8" />
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  {tags.length > 0 && (
+    <div class="meta-row meta-row-tags">
+      <span class="meta-key meta-key-inline">Tags</span>
+      <div class="tags">
+        {tags.map((tag) => <span class="tag">{tag}</span>)}
+      </div>
+    </div>
+  )}
+</aside>

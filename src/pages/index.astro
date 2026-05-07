@@ -1,0 +1,84 @@
+---
+// Library page (`/`) — the grid view of every snippet, with category + tag filters.
+//
+// All filtering is client-side: snippets render once, and clicking a chip
+// toggles `is-hidden` on cards via the inline script below. Single-select
+// per axis; the two axes combine with AND.
+
+import Codex from '../layouts/Codex.astro';
+import FilterBar from '../components/FilterBar.astro';
+import SnippetCard from '../components/SnippetCard.astro';
+import { getAllSnippets } from '../lib/snippets';
+import { loadCategories } from '../lib/categories';
+import { SITE_CONFIG } from '../lib/config';
+
+const snippets = await getAllSnippets();
+const categories = loadCategories();
+
+// Only show filter chips for categories + tags that actually have content.
+// Categories keep their `categories.yaml` order; empty ones are dropped so
+// the bar doesn't list options that produce zero results.
+const usedCategoryIds = new Set(snippets.map((s) => s.category.id));
+const tagSet = new Set<string>();
+for (const s of snippets) for (const t of s.entry.data.tags) tagSet.add(t);
+
+const categoryChips = categories
+  .filter((c) => usedCategoryIds.has(c.id))
+  .map((c) => ({ value: c.id, label: c.label }));
+const tagChips = Array.from(tagSet).sort().map((t) => ({ value: t, label: t }));
+---
+
+<Codex title={`${SITE_CONFIG.appName} — Snippet library`} page="library">
+  <div class="lib">
+    <header class="lib-hero">
+      <h1 class="lib-h1">Snippet library</h1>
+      <p class="lib-lede">
+        Reusable Zendesk Guide theme snippets — locking the request page, hiding
+        sign-in links, footer customizations, and the rest of the recipes the
+        team reaches for again and again.
+      </p>
+    </header>
+
+    <FilterBar axis="category" label="Category" chips={categoryChips} />
+    <FilterBar axis="tag" label="Tag" chips={tagChips} />
+
+    <div class="snippet-grid" id="snippet-grid">
+      {snippets.map((item) => <SnippetCard item={item} />)}
+    </div>
+  </div>
+</Codex>
+
+<script>
+  // Library filter — single-select per axis (Category | Tag); axes combine with AND.
+  // The filter axes' chips are buttons with a `data-filter-value` attribute.
+  // Cards carry `data-cat` and `data-tags` (comma-joined) for matching.
+
+  type Axis = 'category' | 'tag';
+  const filters: Record<Axis, string> = { category: '', tag: '' };
+
+  const cards = document.querySelectorAll<HTMLElement>('.snippet-card');
+
+  function applyFilters() {
+    cards.forEach((card) => {
+      const cardCat = card.dataset.cat ?? '';
+      const cardTags = (card.dataset.tags ?? '').split(',').filter(Boolean);
+      const matchesCat = !filters.category || cardCat === filters.category;
+      const matchesTag = !filters.tag || cardTags.includes(filters.tag);
+      card.classList.toggle('is-hidden', !(matchesCat && matchesTag));
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('.filter-bar').forEach((bar) => {
+    const axis = bar.dataset.filterAxis as Axis | undefined;
+    if (!axis) return;
+
+    const chips = bar.querySelectorAll<HTMLButtonElement>('button[data-filter-value]');
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        filters[axis] = chip.dataset.filterValue ?? '';
+        chips.forEach((c) => c.classList.toggle('is-active', c === chip));
+        applyFilters();
+      });
+    });
+  });
+</script>

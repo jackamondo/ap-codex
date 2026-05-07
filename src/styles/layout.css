@@ -1,0 +1,273 @@
+/* =============================================================================
+   layout.css — the app shell and its three structural columns.
+
+   App shell grid:
+     ┌──────────────────────────────────────────────┐
+     │              topbar (60px)                   │
+     ├─────────┬───────────────────────┬────────────┤
+     │ sidebar │         main          │   toc      │
+     │ (264)   │      (fluid)          │  (232)     │
+     └─────────┴───────────────────────┴────────────┘
+
+   - The Library page hides the TOC column.
+   - Below 1180px, TOC hides on every page.
+   - Below 760px, the layout collapses to a single column.
+
+   Contents:
+   - .app grid + responsive overrides
+   - Topbar (.topbar*) — sticky, brand mark, nav, search button, actions
+   - Sidebar (.sidebar*) — categorized snippet rail
+   - Main / content (.main, .content) — scroll container + content gutter
+   - TOC pane (.toc-pane*) — sticky right column
+   ============================================================================= */
+
+/* ------- App shell ------- */
+.app {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr) 232px;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas:
+    "topbar topbar topbar"
+    "sidebar main toc";
+  height: 100vh;
+  width: 100%;
+}
+/* Library + Category pages skip the right TOC column. Snippet pages keep it. */
+.app[data-page="library"],
+.app[data-page="category"] {
+  grid-template-columns: 264px minmax(0, 1fr);
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar main";
+}
+
+/* ------- Topbar ------- */
+.topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.012em;
+  margin-right: 4px;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.topbar-brand-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-4);
+  margin-left: 4px;
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 12px;
+}
+.topbar-nav-link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--fg-3);
+  font: inherit;
+  font-size: 13.5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+.topbar-nav-link:hover { background: var(--bg-sunk); color: var(--fg); }
+.topbar-nav-link.is-active { color: var(--fg); background: var(--bg-sunk); }
+
+/* Topbar search looks like an input but is a button that opens the palette.
+   `margin-left: auto` pushes it to the right edge of the topbar so the
+   theme-toggle sits next to it; brand + nav stay anchored on the left. */
+.topbar-search {
+  margin-left: auto;
+  width: 280px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-sunk);
+  color: var(--fg-3);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  cursor: text;
+  appearance: none;
+  position: relative;
+  transition: border-color .12s ease, background .12s ease;
+}
+.topbar-search:hover { border-color: var(--line-2); background: var(--bg-elev); }
+.topbar-search:focus-visible {
+  outline: none;
+  border-color: transparent;
+  background:
+    linear-gradient(var(--bg-elev), var(--bg-elev)) padding-box,
+    var(--accent-grad-soft) border-box;
+}
+.topbar-search-icon { color: var(--fg-4); display: flex; }
+.topbar-search-text { flex: 1; text-align: left; }
+
+/* `.topbar-search` already has `margin-left: auto`, so actions just sit
+   immediately after it via the parent `.topbar`'s flex gap. */
+.topbar-actions { display: flex; align-items: center; gap: 6px; }
+
+/* ------- Sidebar ------- */
+.sidebar {
+  grid-area: sidebar;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+  overflow-y: auto;
+  padding: 28px 14px 32px 28px;
+  font-size: 13.5px;
+  scrollbar-width: thin;
+}
+
+.sidebar-group { margin-bottom: 20px; }
+.sidebar-group + .sidebar-group { margin-top: 4px; }
+/* Category header: uppercase mono label with a 1px line that fills the rest
+   of the row via a flex spacer in ::after. The label itself is a link to
+   the category page. */
+.sidebar-group-h {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  padding: 0 10px;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-group-h-link {
+  font-family: var(--mono);
+  color: var(--fg-4);
+  text-decoration: none;
+  transition: color .12s ease;
+}
+.sidebar-group-h-link:hover { color: var(--fg-2); }
+.sidebar-group-h::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.sidebar-items { list-style: none; margin: 0; padding: 0; }
+.sidebar-item a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  margin: 1px 0;
+  color: var(--fg-3);
+  text-decoration: none;
+  border-radius: 6px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  transition: background .1s ease, color .1s ease;
+}
+.sidebar-item a:hover { background: var(--bg-sunk); color: var(--fg); }
+/* Active item: bolder text + subtle background + 2px accent gradient bar
+   glued to the sidebar's left edge. */
+.sidebar-item a.is-active {
+  color: var(--fg);
+  font-weight: 500;
+  background: var(--bg-sunk);
+  position: relative;
+}
+.sidebar-item a.is-active::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent-grad);
+}
+
+/* ------- Main / content ------- */
+.main {
+  grid-area: main;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  min-width: 0;
+}
+.content {
+  max-width: 760px;
+  margin: 0;
+  padding: 56px 56px 120px 56px;
+}
+
+/* ------- TOC pane (right column, sticky) -------
+   The pane itself is a scrollable column; the inner block is sticky so the
+   TOC stays visible as you scroll the main content. */
+.toc-pane {
+  grid-area: toc;
+  border-left: 1px solid var(--line);
+  background: var(--bg);
+  min-width: 0;
+  overflow-y: auto;
+}
+.toc-pane-inner {
+  position: sticky;
+  top: 0;
+  padding: 56px 28px 32px 28px;
+}
+
+/* ------- Responsive ------- */
+@media (max-width: 1180px) {
+  .app {
+    grid-template-columns: 264px minmax(0, 1fr);
+    grid-template-areas:
+      "topbar topbar"
+      "sidebar main";
+  }
+  .toc-pane { display: none; }
+}
+
+@media (max-width: 760px) {
+  .app,
+  .app[data-page="library"],
+  .app[data-page="category"] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 60px auto 1fr;
+    grid-template-areas: "topbar" "sidebar" "main";
+  }
+  .sidebar { max-height: 200px; }
+  .content, .lib { padding: 32px 24px 80px; }
+  .topbar { padding: 0 16px; gap: 12px; }
+  .topbar-nav { display: none; }
+}

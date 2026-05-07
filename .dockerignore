@@ -1,0 +1,20 @@
+# Things the build stage doesn't need.
+# `.git` is intentionally NOT excluded — sync-content reads `git log`.
+node_modules
+dist
+.astro
+src/data/commits.json
+
+# Local-only files
+.env
+.env.local
+.env.production
+.DS_Store
+.vscode
+.idea
+
+# Don't ship docs / design references into the image
+design
+README.md
+CONTRIBUTING.md
+DEPLOYMENT.md

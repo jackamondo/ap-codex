@@ -1,0 +1,34 @@
+---
+// FilterBar — one row of filter chips ("Category" or "Tag").
+//
+// Chips are buttons with a `data-filter-value`. The filter logic lives in a
+// tiny inline script on the Library page — clicking a chip toggles
+// `is-active` here and `is-hidden` on cards that don't match.
+
+interface Chip {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  /** "category" or "tag" — used as a data-attribute key on the bar. */
+  axis: string;
+  /** Visible label, e.g. "Category" or "Tag". */
+  label: string;
+  chips: Chip[];
+}
+
+const { axis, label, chips } = Astro.props;
+---
+
+<div class="filter-bar" data-filter-axis={axis}>
+  <span class="filter-bar-label">{label}</span>
+  <button type="button" class="tag tag-clickable is-active" data-filter-value="">
+    all
+  </button>
+  {chips.map((chip) => (
+    <button type="button" class="tag tag-clickable" data-filter-value={chip.value}>
+      {chip.label}
+    </button>
+  ))}
+</div>

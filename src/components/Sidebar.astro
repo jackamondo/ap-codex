@@ -1,0 +1,57 @@
+---
+// Sidebar — left rail listing the snippet library by category.
+//
+// Categories and their item ordering come from `zd-codex/categories.yaml`.
+// Categories with no snippets are hidden, so the sidebar grows as the team
+// adds content rather than showing empty placeholders.
+
+import { getSidebarGroups } from '../lib/snippets';
+
+interface Props {
+  /** Active snippet id, if we're on a snippet detail page. Null on Library / Category pages. */
+  activeId?: string | null;
+  /** Top-level page kind — controls whether "All snippets" is highlighted. */
+  page?: 'library' | 'snippet' | 'category';
+}
+
+const { activeId = null, page = 'library' } = Astro.props;
+const groups = await getSidebarGroups();
+---
+
+<nav class="sidebar" aria-label="Snippet library">
+  <!-- Top: "All snippets" link routes to the Library page. -->
+  <ul class="sidebar-items" style="margin-bottom: 24px;">
+    <li class="sidebar-item">
+      <a href="/" class:list={{ 'is-active': page === 'library' }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3"  width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+        </svg>
+        All snippets
+      </a>
+    </li>
+  </ul>
+
+  {groups.map((group) => (
+    <div class="sidebar-group">
+      {/* Category label is also a link — clicking it goes to the category page. */}
+      <h3 class="sidebar-group-h">
+        <a href={`/category/${group.id}`} class="sidebar-group-h-link">{group.label}</a>
+      </h3>
+      <ul class="sidebar-items">
+        {group.snippets.map((snippet) => (
+          <li class="sidebar-item">
+            <a
+              href={`/${snippet.id}`}
+              class:list={{ 'is-active': activeId === snippet.id }}
+            >
+              {snippet.data.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))}
+</nav>
