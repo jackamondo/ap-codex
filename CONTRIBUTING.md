@@ -6,10 +6,19 @@ This is a PR-driven docs site. Adding or editing a snippet means opening a pull 
 
 1. Add a `.md` file under `content/<category>/`
 2. Write the frontmatter
-3. Register the snippet's id in [`content/categories.yaml`](content/categories.yaml)
+3. Register the snippet's id under the right **section** → **category** in [`content/categories.yaml`](content/categories.yaml)
 4. Open a PR
 
 `npm run dev` hot-reloads while you work.
+
+## How the library is organized
+
+The sidebar has two levels of grouping:
+
+- **Sections** — top-level domains (e.g. `Zendesk Guide`, `Integrations`, `Internal workflows`).
+- **Categories** — sub-areas inside a section (e.g. `Header & nav` and `Request form` inside `Zendesk Guide`; `Sunshine Conversations` and `Webhooks` inside `Integrations`).
+
+Both levels are declared in `content/categories.yaml`. Sections / categories without any in-collection snippets stay invisible in the sidebar — so you can declare an "Integrations" section ahead of having content for it without leaving an empty header in the rail.
 
 ## 1. Create the markdown file
 
@@ -55,14 +64,17 @@ The schema in [src/content.config.ts](src/content.config.ts) validates this at b
 
 ## 3. Register in `content/categories.yaml`
 
-This is the sidebar manifest. Add the snippet's id to the matching category's `items` list:
+This is the sidebar manifest. Find the right section, find the right category within it, append the snippet's id to that category's `items` list:
 
 ```yaml
-- id: footer
-  label: Footer
-  items:
-    - custom-footer-links
-    - social-icons      # ← add this
+- section: zendesk-guide
+  label: Zendesk Guide
+  categories:
+    - id: footer
+      label: Footer
+      items:
+        - custom-footer-links
+        - social-icons      # ← add this
 ```
 
 The order of `items` is the order shown in the sidebar.
@@ -96,7 +108,8 @@ Rendered output: a code block with `templates/footer.hbs` in the header bar, the
 
 - **Removing a snippet**: delete the `.md` and remove its id from `categories.yaml`. Inbound links from other snippets' `related: [...]` lists will silently drop. External bookmarks to the URL will 404 — there's no redirect machinery yet.
 - **Renaming a snippet**: changing the filename = changing the URL = breaking inbound bookmarks. `git log --follow` preserves commit history across renames, so the on-page history block stays intact. If a rename is unavoidable, do it deliberately and tell the team.
-- **Adding a brand-new category**: append a new entry to `categories.yaml` *and* create the matching folder under `content/`. Empty categories don't render anywhere until they have at least one snippet.
+- **Adding a brand-new category**: append a new entry under the right section's `categories:` list in `categories.yaml` *and* create the matching folder under `content/`. Empty categories don't render anywhere until they have at least one snippet.
+- **Adding a brand-new section**: append a new top-level entry to `categories.yaml` (with `section`, `label`, and an empty `categories:` array). The section won't appear in the sidebar until at least one of its categories has content — so it's safe to set up the structure ahead of writing snippets.
 
 ## Local dev
 

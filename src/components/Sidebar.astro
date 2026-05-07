@@ -1,11 +1,15 @@
 ---
-// Sidebar — left rail listing the snippet library by category.
+// Sidebar — left rail listing the snippet library by section > category.
 //
-// Categories and their item ordering come from `zd-codex/categories.yaml`.
-// Categories with no snippets are hidden, so the sidebar grows as the team
-// adds content rather than showing empty placeholders.
+// The structure mirrors `content/categories.yaml`:
+//   - sections (top-level domain headers, e.g. "Zendesk Guide")
+//     - categories (sub-area headers within a section, e.g. "Header & nav")
+//       - snippets (the actual links)
+//
+// Sections / categories without any in-collection snippets are filtered out,
+// so the rail grows as content lands rather than showing empty placeholders.
 
-import { getSidebarGroups } from '../lib/snippets';
+import { getSidebarSections } from '../lib/snippets';
 
 interface Props {
   /** Active snippet id, if we're on a snippet detail page. Null on Library / Category pages. */
@@ -15,12 +19,12 @@ interface Props {
 }
 
 const { activeId = null, page = 'library' } = Astro.props;
-const groups = await getSidebarGroups();
+const sections = await getSidebarSections();
 ---
 
 <nav class="sidebar" aria-label="Snippet library">
   <!-- Top: "All snippets" link routes to the Library page. -->
-  <ul class="sidebar-items" style="margin-bottom: 24px;">
+  <ul class="sidebar-items" style="margin-bottom: 20px;">
     <li class="sidebar-item">
       <a href="/" class:list={{ 'is-active': page === 'library' }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -34,24 +38,49 @@ const groups = await getSidebarGroups();
     </li>
   </ul>
 
-  {groups.map((group) => (
-    <div class="sidebar-group">
-      {/* Category label is also a link — clicking it goes to the category page. */}
-      <h3 class="sidebar-group-h">
-        <a href={`/category/${group.id}`} class="sidebar-group-h-link">{group.label}</a>
-      </h3>
-      <ul class="sidebar-items">
-        {group.snippets.map((snippet) => (
-          <li class="sidebar-item">
-            <a
-              href={`/${snippet.id}`}
-              class:list={{ 'is-active': activeId === snippet.id }}
-            >
-              {snippet.data.title}
-            </a>
-          </li>
-        ))}
-      </ul>
+  {sections.map((section) => (
+    <div class="sidebar-section">
+      <h2 class="sidebar-section-h">{section.label}</h2>
+
+      {section.categories.length === 1 ? (
+        /* Single-category section: skip the redundant category sub-header
+           and put items directly under the section header. The category
+           page (/category/<id>) still exists — it's just not surfaced
+           here as a sub-heading. */
+        <ul class="sidebar-items">
+          {section.categories[0].snippets.map((snippet) => (
+            <li class="sidebar-item">
+              <a
+                href={`/${snippet.id}`}
+                class:list={{ 'is-active': activeId === snippet.id }}
+              >
+                {snippet.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        /* Multi-category section: each category gets its own sub-header. */
+        section.categories.map((category) => (
+          <div class="sidebar-group">
+            <h3 class="sidebar-group-h">
+              <a href={`/category/${category.id}`} class="sidebar-group-h-link">{category.label}</a>
+            </h3>
+            <ul class="sidebar-items">
+              {category.snippets.map((snippet) => (
+                <li class="sidebar-item">
+                  <a
+                    href={`/${snippet.id}`}
+                    class:list={{ 'is-active': activeId === snippet.id }}
+                  >
+                    {snippet.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
     </div>
   ))}
 </nav>

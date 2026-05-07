@@ -4,7 +4,13 @@
 // collection directly, so category resolution stays in one place.
 
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { loadCategories, findCategoryForSnippet, type Category } from './categories';
+import {
+  loadCategories,
+  loadSections,
+  findCategoryForSnippet,
+  type Category,
+  type Section,
+} from './categories';
 
 export type SnippetEntry = CollectionEntry<'snippets'>;
 
@@ -33,19 +39,42 @@ export async function getAllSnippets(): Promise<SnippetWithCategory[]> {
   return out;
 }
 
-/** Sidebar groups: every category that has at least one snippet, in manifest order. */
-export async function getSidebarGroups(): Promise<Array<Category & { snippets: SnippetEntry[] }>> {
+/** A category with its snippets resolved (used inside sidebar sections). */
+export interface SidebarCategory extends Category {
+  snippets: SnippetEntry[];
+}
+
+/** A section with its non-empty categories resolved. */
+export interface SidebarSection extends Omit<Section, 'categories'> {
+  categories: SidebarCategory[];
+}
+
+/**
+ * Sidebar tree: sections > categories > snippets, in manifest order.
+ *
+ * Sections without any non-empty categories are filtered out; categories
+ * without any in-collection snippets are filtered out. So the sidebar
+ * only renders structure that actually has content behind it — declaring
+ * `integrations` ahead of having content there doesn't put a stranded
+ * empty header in the rail.
+ */
+export async function getSidebarSections(): Promise<SidebarSection[]> {
   const all = await getCollection('snippets');
   const byId = new Map(all.map((s) => [s.id, s]));
 
-  return loadCategories()
-    .map((category) => ({
-      ...category,
-      snippets: category.items
-        .map((id) => byId.get(id))
-        .filter((s): s is SnippetEntry => s !== undefined),
+  return loadSections()
+    .map((section) => ({
+      ...section,
+      categories: section.categories
+        .map((category) => ({
+          ...category,
+          snippets: category.items
+            .map((id) => byId.get(id))
+            .filter((s): s is SnippetEntry => s !== undefined),
+        }))
+        .filter((cat) => cat.snippets.length > 0),
     }))
-    .filter((group) => group.snippets.length > 0);
+    .filter((section) => section.categories.length > 0);
 }
 
 /** Look up one snippet + its category. Returns null if either is missing. */

@@ -141,6 +141,28 @@
    immediately after it via the parent `.topbar`'s flex gap. */
 .topbar-actions { display: flex; align-items: center; gap: 6px; }
 
+/* Mobile-only topbar elements — hidden on desktop, shown by the mobile
+   media query below. Selector is qualified with `.topbar` so it beats the
+   `.btn { display: inline-flex }` rule in components.css (which loads
+   after this file at equal specificity and would otherwise win). */
+.topbar .topbar-mobile-trigger,
+.topbar .topbar-mobile-search { display: none; }
+
+/* ------- Sidebar backdrop (mobile drawer) -------
+   Full-screen scrim under the sidebar when the mobile drawer is open.
+   Hidden by default; visibility is gated by both `data-sidebar-open` on
+   <html> and the mobile media query below. */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 24;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+
 /* ------- Sidebar ------- */
 .sidebar {
   grid-area: sidebar;
@@ -152,7 +174,33 @@
   scrollbar-width: thin;
 }
 
-.sidebar-group { margin-bottom: 20px; }
+/* Section header: primary grouping in the sidebar (e.g. "Zendesk Guide",
+   "Integrations"). Visually heavier than a category header — bigger,
+   bolder, in `--fg-2` — so the two levels read as a clear hierarchy. */
+.sidebar-section { margin-bottom: 28px; }
+.sidebar-section:last-child { margin-bottom: 0; }
+.sidebar-section-h {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--fg-2);
+  padding: 0 10px;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-section-h::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-2);
+}
+
+.sidebar-group { margin-bottom: 16px; }
+.sidebar-group:last-child { margin-bottom: 0; }
 .sidebar-group + .sidebar-group { margin-top: 4px; }
 /* Category header: uppercase mono label with a 1px line that fills the rest
    of the row via a flex spacer in ::after. The label itself is a link to
@@ -259,15 +307,57 @@
 }
 
 @media (max-width: 760px) {
+  /* App grid collapses to a single column; sidebar overlays the main area
+     as a drawer (it's pulled out of grid flow via `position: fixed` below). */
   .app,
   .app[data-page="library"],
   .app[data-page="category"] {
     grid-template-columns: 1fr;
-    grid-template-rows: 60px auto 1fr;
-    grid-template-areas: "topbar" "sidebar" "main";
+    grid-template-rows: 60px 1fr;
+    grid-template-areas:
+      "topbar"
+      "main";
   }
-  .sidebar { max-height: 200px; }
-  .content, .lib { padding: 32px 24px 80px; }
-  .topbar { padding: 0 16px; gap: 12px; }
+
+  /* Topbar: hide desktop links and the wide search button; show the
+     hamburger trigger and the mobile search icon instead. */
+  .topbar { padding: 0 8px 0 6px; gap: 8px; }
   .topbar-nav { display: none; }
+  .topbar-search { display: none; }
+  .topbar .topbar-mobile-trigger,
+  .topbar .topbar-mobile-search { display: inline-flex; }
+  .topbar-brand-meta { display: none; }
+
+  /* ------- Sidebar drawer -------
+     Pulled out of grid flow. Slides in from the left when
+     `data-sidebar-open="true"` is set on <html> by the topbar trigger. */
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    max-height: none;
+    z-index: 25;
+    transform: translateX(-100%);
+    transition: transform .25s ease, box-shadow .25s ease;
+    box-shadow: none;
+  }
+  [data-sidebar-open="true"] .sidebar {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Backdrop: fade in only when the drawer is open. */
+  .sidebar-backdrop { display: block; }
+  [data-sidebar-open="true"] .sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Note: mobile padding for `.content` and `.lib` is set in components.css.
+     Putting it here would lose to the desktop rule in components.css due to
+     CSS source order (layout.css loads first), so the override has to live
+     in the same file as the rule it's overriding. */
 }

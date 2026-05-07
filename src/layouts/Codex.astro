@@ -77,6 +77,10 @@ const paletteData = allSnippets.map(({ entry, category }) => ({
   </head>
 
   <body>
+    <!-- Backdrop sits behind the sidebar when the mobile drawer is open.
+         Click closes the drawer; positioned + z-indexed via CSS only on mobile. -->
+    <div class="sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
+
     <div class="app" data-page={page}>
       <Topbar page={page} />
       <Sidebar activeId={activeId} page={page} />

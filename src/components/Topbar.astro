@@ -21,6 +21,20 @@ const { page = 'library' } = Astro.props;
 ---
 
 <header class="topbar">
+  <!-- Hamburger trigger — mobile-only via CSS. Toggles the sidebar drawer. -->
+  <button
+    type="button"
+    class="topbar-mobile-trigger btn btn-icon btn-ghost"
+    data-sidebar-trigger
+    aria-label="Open navigation"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="4" y1="7"  x2="20" y2="7" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="17" x2="20" y2="17" />
+    </svg>
+  </button>
+
   <a href="/" class="topbar-brand" aria-label={`${SITE_CONFIG.appName} home`}>
     <span>{SITE_CONFIG.appName}</span>
   </a>
@@ -61,6 +75,19 @@ const { page = 'library' } = Astro.props;
   </button>
 
   <div class="topbar-actions">
+    <!-- Mobile-only search icon — replaces the wide desktop search button. -->
+    <button
+      type="button"
+      class="topbar-mobile-search btn btn-icon btn-ghost"
+      data-palette-trigger
+      aria-label="Search snippets"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-3.5-3.5" />
+      </svg>
+    </button>
+
     <button
       type="button"
       class="btn btn-icon btn-ghost"
@@ -104,7 +131,34 @@ const { page = 'library' } = Astro.props;
     localStorage.setItem(STORAGE_KEY, next);
   });
 
-  document.querySelector<HTMLButtonElement>('[data-palette-trigger]')?.addEventListener('click', () => {
-    document.dispatchEvent(new CustomEvent('codex:open-palette'));
+  // The palette trigger fires the open event regardless of which button (the
+  // wide desktop one or the mobile search icon) was clicked.
+  document.querySelectorAll<HTMLButtonElement>('[data-palette-trigger]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.dispatchEvent(new CustomEvent('codex:open-palette'));
+    });
+  });
+
+  // Sidebar drawer trigger — mobile-only. Toggles `data-sidebar-open` on
+  // <html>, which the CSS uses to slide the sidebar in from the left.
+  document.querySelector<HTMLButtonElement>('[data-sidebar-trigger]')?.addEventListener('click', () => {
+    root.dataset.sidebarOpen = root.dataset.sidebarOpen === 'true' ? 'false' : 'true';
+  });
+
+  // Backdrop click + sidebar link click close the drawer.
+  document.querySelector<HTMLElement>('[data-sidebar-backdrop]')?.addEventListener('click', () => {
+    root.dataset.sidebarOpen = 'false';
+  });
+  document.querySelectorAll<HTMLAnchorElement>('.sidebar a').forEach((a) => {
+    a.addEventListener('click', () => {
+      root.dataset.sidebarOpen = 'false';
+    });
+  });
+
+  // Esc closes the drawer too.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && root.dataset.sidebarOpen === 'true') {
+      root.dataset.sidebarOpen = 'false';
+    }
   });
 </script>

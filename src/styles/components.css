@@ -59,7 +59,12 @@
   letter-spacing: 0;
 }
 
-/* ------- Crumbs / H1 / lede ------- */
+/* ------- Crumbs / H1 / lede -------
+   Crumbs stay on a single line at any viewport width. Intermediate items
+   ("AP-Codex", separators, the category link) never wrap mid-word; the
+   final item (the current page title) is the only one allowed to shrink,
+   and it ellipsizes when there's not enough room. The H1 directly below
+   already shows the full title, so a truncated crumb doesn't lose info. */
 .crumbs {
   display: flex;
   align-items: center;
@@ -69,6 +74,19 @@
   color: var(--fg-4);
   margin-bottom: 20px;
   letter-spacing: 0.01em;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.crumbs > * {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Last item: the current page title. Allowed to shrink + ellipsize. */
+.crumbs > :last-child {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .crumbs a { color: var(--fg-3); text-decoration: none; }
 .crumbs a:hover { color: var(--fg); }
@@ -785,3 +803,49 @@
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* =============================================================================
+   Mobile overrides for content-area components.
+   Layout-level mobile rules (drawer, topbar) live in layout.css; here we
+   tune the content components: smaller hero typography, stacked meta strip,
+   tighter cards.
+   ============================================================================= */
+@media (max-width: 760px) {
+  /* Body content gutters. `.lib` (Library + Category) takes tighter side
+     padding than `.content` (snippet pages): its cards already provide 16px
+     internal padding, so doubling up with a wide outer gutter would push
+     text too far from the viewport edge. */
+  .content { padding: 28px 20px 80px; }
+  .lib { padding: 24px 12px 72px; }
+
+  /* Headings: dial back the desktop sizes so they fit on a phone. */
+  .h1, .lib-h1 {
+    font-size: 30px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .lede, .lib-lede { font-size: 16.5px; }
+
+  /* Meta strip: stack the cells so the divider doesn't dangle, and let
+     the source path wrap rather than overflowing. */
+  .meta { padding: 14px 14px; }
+  .meta-divider { display: none; }
+  .meta-row { gap: 12px; }
+  .meta-cell { width: 100%; }
+  .meta-link { flex-wrap: wrap; }
+  .meta-link code {
+    font-size: 11.5px;
+    word-break: break-all;
+  }
+
+  /* Library page: tighten hero margin + card padding. */
+  .lib-hero { margin-bottom: 24px; }
+  .snippet-card { padding: 16px; }
+  .snippet-grid { gap: 10px; }
+
+  /* Code blocks: tighten padding so the content has more breathing room.
+     Horizontal scroll is already enabled on overflow. */
+  .code-body { padding: 14px 14px; font-size: 12px; }
+  .code-head { padding: 0 6px 0 12px; height: 34px; }
+  .code-head-lang { display: none; } /* keep the row uncrowded; lang is in the file path's extension already */
+}

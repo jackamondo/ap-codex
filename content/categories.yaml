@@ -1,45 +1,73 @@
-# Sidebar categories for the Codex.
-# - `id` matches the folder name under content/.
-# - `label` is the human-readable name shown in the sidebar.
-# - `items` is the ordered list of snippet ids inside that category.
-#   Adding a snippet means: drop the .md AND add its id here.
+# Sidebar manifest for the Codex.
+#
+# Two-level hierarchy:
+#   - sections (top-level domain — "Zendesk Guide", "Integrations", ...)
+#     - categories (sub-areas within a section — "Header & nav", "Requests")
+#       - items (ordered snippet ids — filenames without `.md`)
+#
+# Sections without any non-empty categories don't render in the sidebar.
+# Categories without any items don't render either. So you can declare a
+# section ahead of having content for it; the structure shows up once a
+# snippet is added.
+#
+# Adding a snippet means: drop the .md file under content/<category>/ AND
+# add its id to the matching category's `items` list below.
 
-- id: getting-started
+- section: getting-started
   label: Getting started
-  items:
-    - introduction
-    - how-to-use
+  categories:
+    - id: getting-started
+      label: Getting started
+      items:
+        - introduction
+        - how-to-use
 
-- id: header
-  label: Header & nav
-  items:
-    - hide-signin-link
-    - sticky-header
+- section: zendesk-guide
+  label: Zendesk Guide
+  categories:
+    - id: header
+      label: Header & nav
+      items:
+        - remove-signin-options
+    - id: requests
+      label: Request form
+      items:
+        - restrict-to-requests-only
+        - hide-form-fields
+    - id: footer
+      label: Footer
+      items: []
+    - id: homepage
+      label: Home page
+      items: []
+    - id: categories
+      label: Categories
+      items: []
+    - id: sections
+      label: Sections
+      items: []
+    - id: articles
+      label: Articles
+      items:
+        - dynamic-content-placeholders
+    - id: custom
+      label: Custom pages
+      items: []
 
-- id: requests
-  label: Request form
-  items: []
+- section: integrations
+  label: Integrations
+  categories:
+    - id: sunshine
+      label: Sunshine Conversations
+      items:
+        - switchboard-via-postman
+    - id: webhooks
+      label: Webhooks
+      items: []
 
-- id: footer
-  label: Footer
-  items: []
-
-- id: homepage
-  label: Home page
-  items: []
-
-- id: categories
-  label: Categories
-  items: []
-
-- id: sections
-  label: Sections
-  items: []
-
-- id: articles
-  label: Articles
-  items: []
-
-- id: custom
-  label: Custom pages
-  items: []
+- section: workflows
+  label: Internal workflows
+  categories:
+    - id: debugging
+      label: Customer debugging
+      items: []
